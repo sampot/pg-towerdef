@@ -190,6 +190,70 @@ button:disabled {
   background: color-mix(in oklab, var(--panel) 88%, transparent);
   border: 1px solid var(--line);
 }
+.chip:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: 0.2em;
+}
+.ach-toast {
+  margin: 0;
+  text-align: center;
+  font-weight: 700;
+  color: var(--gold);
+  animation: combo-pop 0.45s ease;
+}
+.ach-list {
+  margin: 0.4rem 0 0.7rem;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 40vh;
+  overflow: auto;
+}
+.ach-list li {
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.55rem;
+  border: 1px solid var(--line);
+  background: color-mix(in oklab, var(--text) 4%, transparent);
+  font-size: 0.86rem;
+}
+.ach-list li.done {
+  border-color: color-mix(in oklab, var(--accent) 50%, var(--line));
+}
+.ach-list li strong {
+  display: block;
+}
+.ach-list li span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.tutorial {
+  border-color: color-mix(in oklab, var(--accent) 40%, var(--line));
+}
+@keyframes combo-pop {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .status[data-tone="ok"] {
   color: var(--accent);
 }

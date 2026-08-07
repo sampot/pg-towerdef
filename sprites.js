@@ -2,14 +2,15 @@
  * Polished map / tower / enemy rendering.
  */
 
-import { ENEMY_BASE, PADS, PATH, TOWERS } from "./game.js";
+import { ENEMY_BASE, TOWERS } from "./game.js";
 
 /**
  * @param {CanvasRenderingContext2D} ctx
  * @param {number} W
  * @param {number} H
+ * @param {{ x: number, y: number }[]} path
  */
-export function drawBackground(ctx, W, H) {
+export function drawBackground(ctx, W, H, path) {
   const g = ctx.createLinearGradient(0, 0, W * 0.2, H);
   g.addColorStop(0, "#254a32");
   g.addColorStop(0.55, "#1a3524");
@@ -17,7 +18,6 @@ export function drawBackground(ctx, W, H) {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
 
-  // noise patches
   ctx.globalAlpha = 0.07;
   for (let i = 0; i < 14; i++) {
     ctx.fillStyle = i % 2 ? "#000" : "#fff";
@@ -27,55 +27,47 @@ export function drawBackground(ctx, W, H) {
   }
   ctx.globalAlpha = 1;
 
-  // path shadow
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
   ctx.strokeStyle = "rgba(0,0,0,0.35)";
   ctx.lineWidth = 34;
-  strokePath(ctx);
-  // path body
+  strokePath(ctx, path);
   const pg = ctx.createLinearGradient(0, 0, W, H);
   pg.addColorStop(0, "#d2b48c");
   pg.addColorStop(1, "#b8956a");
   ctx.strokeStyle = pg;
   ctx.lineWidth = 28;
-  strokePath(ctx);
+  strokePath(ctx, path);
   ctx.strokeStyle = "#9a7b52";
   ctx.lineWidth = 16;
-  strokePath(ctx);
-  // center dashes
+  strokePath(ctx, path);
   ctx.save();
   ctx.setLineDash([8, 10]);
   ctx.strokeStyle = "rgba(255,255,255,0.18)";
   ctx.lineWidth = 2;
-  strokePath(ctx);
+  strokePath(ctx, path);
   ctx.restore();
 
-  // start / end markers
-  const start = PATH[0];
-  const end = PATH[PATH.length - 1];
+  const start = path[0];
+  const end = path[path.length - 1];
   ctx.fillStyle = "rgba(110,231,183,0.85)";
   ctx.beginPath();
-  ctx.arc(Math.max(12, start.x + 18), start.y, 7, 0, Math.PI * 2);
+  ctx.arc(Math.max(12, Math.min(W - 12, start.x + 18)), Math.max(12, start.y), 7, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = "rgba(248,113,113,0.9)";
   ctx.beginPath();
-  ctx.arc(end.x, Math.min(H - 12, end.y - 20), 8, 0, Math.PI * 2);
+  ctx.arc(Math.min(W - 12, Math.max(12, end.x)), Math.min(H - 12, end.y - 10), 8, 0, Math.PI * 2);
   ctx.fill();
-  ctx.font = "bold 9px sans-serif";
-  ctx.fillStyle = "#fff";
-  ctx.textAlign = "center";
-  ctx.fillText("入口", Math.max(20, start.x + 18), start.y - 12);
-  ctx.fillText("出口", end.x, Math.min(H - 4, end.y - 32));
 }
 
 /**
  * @param {CanvasRenderingContext2D} ctx
+ * @param {{ x: number, y: number }[]} path
  */
-function strokePath(ctx) {
+function strokePath(ctx, path) {
   ctx.beginPath();
-  ctx.moveTo(PATH[0].x, PATH[0].y);
-  for (let i = 1; i < PATH.length; i++) ctx.lineTo(PATH[i].x, PATH[i].y);
+  ctx.moveTo(path[0].x, path[0].y);
+  for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
   ctx.stroke();
 }
 
@@ -83,10 +75,11 @@ function strokePath(ctx) {
  * @param {CanvasRenderingContext2D} ctx
  * @param {number | null} selectedPad
  * @param {(import('./game.js').Tower|null)[]} towers
+ * @param {{ x: number, y: number }[]} pads
  */
-export function drawPads(ctx, selectedPad, towers) {
-  for (let i = 0; i < PADS.length; i++) {
-    const p = PADS[i];
+export function drawPads(ctx, selectedPad, towers, pads) {
+  for (let i = 0; i < pads.length; i++) {
+    const p = pads[i];
     const occ = !!towers[i];
     const sel = selectedPad === i;
     ctx.beginPath();
@@ -99,13 +92,11 @@ export function drawPads(ctx, selectedPad, towers) {
       ctx.lineWidth = sel ? 2 : 1.2;
       ctx.stroke();
       ctx.setLineDash([]);
-      if (!occ) {
-        ctx.fillStyle = "rgba(255,255,255,0.35)";
-        ctx.font = "14px sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("+", p.x, p.y + 1);
-      }
+      ctx.fillStyle = "rgba(255,255,255,0.35)";
+      ctx.font = "14px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("+", p.x, p.y + 1);
     }
   }
 }

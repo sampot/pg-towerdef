@@ -1,45 +1,19 @@
 /**
- * Tower defense — polished single-path campaign + endless.
+ * Tower defense — multi-map campaign + endless + stars.
  * Genre homage for entertainment; not a commercial franchise clone.
  */
+
+import { MAPS, getMap, pathLengths } from "./maps.js";
 
 export const W = 360;
 export const H = 520;
 
 /** @typedef {{ x: number, y: number }} Pt */
 
-export const PATH = /** @type {Pt[]} */ ([
-  { x: -24, y: 70 },
-  { x: 290, y: 70 },
-  { x: 290, y: 165 },
-  { x: 70, y: 165 },
-  { x: 70, y: 260 },
-  { x: 310, y: 260 },
-  { x: 310, y: 355 },
-  { x: 50, y: 355 },
-  { x: 50, y: 450 },
-  { x: 200, y: 450 },
-  { x: 200, y: 540 },
-]);
-
-export const PADS = /** @type {Pt[]} */ ([
-  { x: 55, y: 32 },
-  { x: 135, y: 32 },
-  { x: 215, y: 32 },
-  { x: 40, y: 115 },
-  { x: 180, y: 115 },
-  { x: 330, y: 115 },
-  { x: 180, y: 210 },
-  { x: 40, y: 210 },
-  { x: 330, y: 210 },
-  { x: 180, y: 305 },
-  { x: 250, y: 305 },
-  { x: 120, y: 400 },
-  { x: 260, y: 400 },
-  { x: 330, y: 400 },
-  { x: 100, y: 490 },
-  { x: 280, y: 490 },
-]);
+/** @deprecated use game.path — kept for soft imports */
+export const PATH = MAPS[0].path;
+/** @deprecated use game.pads */
+export const PADS = MAPS[0].pads;
 
 /**
  * @typedef {'arrow'|'cannon'|'frost'} TowerKind
@@ -97,35 +71,37 @@ export const ENEMY_BASE = {
   boss: { name: "首領", hp: 520, speed: 24, reward: 60, r: 16, armor: 0.22 },
 };
 
-const PATH_LEN = (() => {
-  const lens = [0];
-  let acc = 0;
-  for (let i = 1; i < PATH.length; i++) {
-    acc += Math.hypot(PATH[i].x - PATH[i - 1].x, PATH[i].y - PATH[i - 1].y);
-    lens.push(acc);
-  }
-  return lens;
-})();
-
-export const PATH_TOTAL = PATH_LEN[PATH_LEN.length - 1];
+const _defaultLens = pathLengths(MAPS[0].path);
 
 /**
+ * @param {Pt[]} path
+ * @param {number[]} lens
+ * @param {number} total
  * @param {number} dist
- * @returns {Pt}
  */
-export function pointOnPath(dist) {
-  const d = Math.max(0, Math.min(PATH_TOTAL, dist));
-  for (let i = 1; i < PATH.length; i++) {
-    if (d <= PATH_LEN[i]) {
-      const seg = PATH_LEN[i] - PATH_LEN[i - 1] || 1;
-      const t = (d - PATH_LEN[i - 1]) / seg;
+export function pointOnPathOf(path, lens, total, dist) {
+  const d = Math.max(0, Math.min(total, dist));
+  for (let i = 1; i < path.length; i++) {
+    if (d <= lens[i]) {
+      const seg = lens[i] - lens[i - 1] || 1;
+      const t = (d - lens[i - 1]) / seg;
       return {
-        x: PATH[i - 1].x + (PATH[i].x - PATH[i - 1].x) * t,
-        y: PATH[i - 1].y + (PATH[i].y - PATH[i - 1].y) * t,
+        x: path[i - 1].x + (path[i].x - path[i - 1].x) * t,
+        y: path[i - 1].y + (path[i].y - path[i - 1].y) * t,
       };
     }
   }
-  return { ...PATH[PATH.length - 1] };
+  return { ...path[path.length - 1] };
+}
+
+/** @deprecated */
+export const PATH_TOTAL = _defaultLens[_defaultLens.length - 1];
+
+/**
+ * @param {number} dist
+ */
+export function pointOnPath(dist) {
+  return pointOnPathOf(MAPS[0].path, _defaultLens, PATH_TOTAL, dist);
 }
 
 /**
@@ -198,20 +174,29 @@ export class TowerDefGame {
     this.diff = "normal";
     /** @type {'campaign'|'endless'} */
     this.mode = "campaign";
+    this.mapId = MAPS[0].id;
+    this.path = MAPS[0].path;
+    this.pads = MAPS[0].pads;
+    this.pathLens = pathLengths(this.path);
+    this.pathTotal = this.pathLens[this.pathLens.length - 1];
     this.maxWaves = 15;
-    this.message = "選難度後開局，建造防線";
+    this.message = "選地圖／難度後開局";
     this.gold = 150;
     this.lives = 20;
+    this.startLives = 20;
     this.wave = 0;
     this.score = 0;
     this.combo = 0;
     this.bestCombo = 0;
     this.speed = 1;
+    this.paused = false;
     this.autoWave = false;
+    this.stars = 0;
+    this.maxTowerLevel = 1;
     /** @type {TargetMode} */
     this.targetMode = "first";
     /** @type {(Tower|null)[]} */
-    this.towers = PADS.map(() => null);
+    this.towers = this.pads.map(() => null);
     /** @type {Enemy[]} */
     this.enemies = [];
     /** @type {Shot[]} */
@@ -231,19 +216,30 @@ export class TowerDefGame {
   /**
    * @param {Diff} [diff]
    * @param {'campaign'|'endless'} [mode]
+   * @param {string} [mapId]
    */
-  start(diff = this.diff, mode = this.mode) {
+  start(diff = this.diff, mode = this.mode, mapId = this.mapId) {
+    const map = getMap(mapId);
+    this.mapId = map.id;
+    this.path = map.path;
+    this.pads = map.pads;
+    this.pathLens = pathLengths(this.path);
+    this.pathTotal = this.pathLens[this.pathLens.length - 1];
     this.diff = diff;
     this.mode = mode;
     this.status = "playing";
+    this.paused = false;
     this.gold = diff === "easy" ? 180 : diff === "hard" ? 120 : 150;
     this.lives = diff === "easy" ? 25 : diff === "hard" ? 15 : 20;
+    this.startLives = this.lives;
     this.wave = 0;
     this.score = 0;
     this.combo = 0;
     this.bestCombo = 0;
+    this.stars = 0;
+    this.maxTowerLevel = 1;
     this.speed = 1;
-    this.towers = PADS.map(() => null);
+    this.towers = this.pads.map(() => null);
     this.enemies = [];
     this.shots = [];
     this.queue = [];
@@ -255,8 +251,15 @@ export class TowerDefGame {
     this.maxWaves = 15;
     this.message =
       mode === "endless"
-        ? "無盡模式 · 建造後按下一波"
-        : `戰役 ${diff === "easy" ? "簡單" : diff === "hard" ? "困難" : "普通"} · 共 ${this.maxWaves} 波`;
+        ? `${map.name} · 無盡 · 建造後按下一波`
+        : `${map.name} · ${diff === "easy" ? "簡單" : diff === "hard" ? "困難" : "普通"} · ${this.maxWaves} 波`;
+  }
+
+  /**
+   * @param {number} dist
+   */
+  pointAt(dist) {
+    return pointOnPathOf(this.path, this.pathLens, this.pathTotal, dist);
   }
 
   upgradeCost(t) {
@@ -275,12 +278,12 @@ export class TowerDefGame {
    * @param {number} pad
    */
   tryBuild(pad) {
-    if (this.status !== "playing") return { ok: false, reason: "notplaying" };
-    if (pad < 0 || pad >= PADS.length || this.towers[pad]) return { ok: false, reason: "bad" };
+    if (this.status !== "playing" || this.paused) return { ok: false, reason: "notplaying" };
+    if (pad < 0 || pad >= this.pads.length || this.towers[pad]) return { ok: false, reason: "bad" };
     const def = TOWERS[this.selectedKind];
     if (this.gold < def.cost) return { ok: false, reason: "gold" };
     this.gold -= def.cost;
-    const p = PADS[pad];
+    const p = this.pads[pad];
     this.towers[pad] = {
       id: nid(),
       kind: this.selectedKind,
@@ -296,13 +299,14 @@ export class TowerDefGame {
   }
 
   tryUpgrade() {
-    if (this.selectedPad == null) return { ok: false };
+    if (this.paused || this.selectedPad == null) return { ok: false };
     const t = this.towers[this.selectedPad];
     if (!t || t.level >= 5) return { ok: false, reason: "max" };
     const cost = this.upgradeCost(t);
     if (this.gold < cost) return { ok: false, reason: "gold" };
     this.gold -= cost;
     t.level += 1;
+    this.maxTowerLevel = Math.max(this.maxTowerLevel, t.level);
     return { ok: true, cost };
   }
 
@@ -318,7 +322,7 @@ export class TowerDefGame {
   }
 
   startWave() {
-    if (this.status !== "playing" || !this.waveClear) return false;
+    if (this.status !== "playing" || this.paused || !this.waveClear) return false;
     if (this.mode === "campaign" && this.wave >= this.maxWaves) return false;
     this.wave += 1;
     this.queue = wavePlan(this.wave, this.diff);
@@ -377,6 +381,7 @@ export class TowerDefGame {
     /** @type {{ x: number, y: number, text: string, color: string }[]} */
     const floats = [];
     if (this.status !== "playing") return { events, floats };
+    if (this.paused) return { events, floats };
 
     const dt = dtRaw * this.speed;
 
@@ -386,7 +391,7 @@ export class TowerDefGame {
         const s = this.queue.shift();
         if (!s) break;
         const base = ENEMY_BASE[s.kind];
-        const p = pointOnPath(0);
+        const p = this.pointAt(0);
         const hp = base.hp * s.hpMul;
         this.enemies.push({
           id: nid(),
@@ -415,12 +420,12 @@ export class TowerDefGame {
         e.speed = e.baseSpeed * 0.42;
       } else e.speed = e.baseSpeed;
       e.dist += e.speed * dt;
-      const p = pointOnPath(e.dist);
+      const p = this.pointAt(e.dist);
       e.x = p.x;
       e.y = p.y;
     }
 
-    const leaked = this.enemies.filter((e) => e.dist >= PATH_TOTAL);
+    const leaked = this.enemies.filter((e) => e.dist >= this.pathTotal);
     for (const e of leaked) {
       const dmg = e.kind === "boss" ? 3 : e.kind === "brute" ? 2 : 1;
       this.lives -= dmg;
@@ -428,7 +433,7 @@ export class TowerDefGame {
       events.push("leak");
       floats.push({ x: e.x, y: e.y, text: `-${dmg}♥`, color: "#ff6b6b" });
     }
-    this.enemies = this.enemies.filter((e) => e.dist < PATH_TOTAL && e.hp > 0);
+    this.enemies = this.enemies.filter((e) => e.dist < this.pathTotal && e.hp > 0);
 
     if (this.lives <= 0) {
       this.lives = 0;
@@ -539,7 +544,9 @@ export class TowerDefGame {
       if (this.mode === "campaign" && this.wave >= this.maxWaves) {
         this.status = "won";
         this.score += this.lives * 15;
-        this.message = `戰役通關！${this.score} 分 · 連殺最佳 ×${this.bestCombo}`;
+        const r = this.lives / Math.max(1, this.startLives);
+        this.stars = r >= 0.8 ? 3 : r >= 0.45 ? 2 : 1;
+        this.message = `通關 ${"★".repeat(this.stars)}${"☆".repeat(3 - this.stars)} · ${this.score} 分`;
         events.push("win");
       } else {
         this.message = `波次清除 · +${bonus} 金幣`;

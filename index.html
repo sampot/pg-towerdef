@@ -6,7 +6,7 @@
     <meta name="color-scheme" content="light dark" />
     <meta
       name="description"
-      content="迷你塔防：戰役／無盡、三塔五級、多敵種首領波、加速與連殺。純前端 Playgrounds SAM。"
+      content="迷你塔防：三地圖戰役、星等、成就、新手引導、無盡模式。純前端 Playgrounds SAM。"
     />
     <title>迷你塔防</title>
     <link rel="stylesheet" href="./styles.css" />
@@ -16,39 +16,22 @@
       <header class="hero">
         <p class="eyebrow">街機</p>
         <h1>迷你塔防</h1>
-        <p class="tagline">戰役十五波 · 無盡生存 · 連殺加成</p>
+        <p class="tagline">三地圖 · 星等戰役 · 成就收集</p>
       </header>
 
       <section class="meter" aria-label="對局狀態">
-        <div class="meter-item">
-          <span class="label">金幣</span>
-          <strong id="gold">150</strong>
-        </div>
-        <div class="meter-item">
-          <span class="label">生命</span>
-          <strong id="lives">20</strong>
-        </div>
-        <div class="meter-item">
-          <span class="label">波次</span>
-          <strong id="wave">0</strong>
-        </div>
-        <div class="meter-item">
-          <span class="label">得分</span>
-          <strong id="score">0</strong>
-        </div>
-        <div class="meter-item">
-          <span class="label">最佳</span>
-          <strong id="best">0</strong>
-        </div>
-        <div class="meter-item">
-          <span class="label">連殺</span>
-          <strong id="combo">0</strong>
-        </div>
+        <div class="meter-item"><span class="label">金幣</span><strong id="gold">150</strong></div>
+        <div class="meter-item"><span class="label">生命</span><strong id="lives">20</strong></div>
+        <div class="meter-item"><span class="label">波次</span><strong id="wave">0</strong></div>
+        <div class="meter-item"><span class="label">得分</span><strong id="score">0</strong></div>
+        <div class="meter-item"><span class="label">最佳</span><strong id="best">0</strong></div>
+        <div class="meter-item"><span class="label">連殺</span><strong id="combo">0</strong></div>
       </section>
 
+      <div class="row" role="group" aria-label="地圖" id="map-row"></div>
       <div class="row" role="group" aria-label="模式">
-        <button type="button" class="chip is-active" data-mode="campaign" id="mode-campaign">戰役</button>
-        <button type="button" class="chip" data-mode="endless" id="mode-endless">無盡</button>
+        <button type="button" class="chip is-active" data-mode="campaign">戰役</button>
+        <button type="button" class="chip" data-mode="endless">無盡</button>
       </div>
       <div class="row" role="group" aria-label="難度">
         <button type="button" class="chip" data-diff="easy">簡單</button>
@@ -71,22 +54,35 @@
       <div class="controls">
         <button type="button" id="btn-start">開局</button>
         <button type="button" id="btn-wave" class="secondary" disabled>下一波</button>
+        <button type="button" id="btn-pause" class="secondary" disabled>暫停</button>
         <button type="button" id="btn-speed" class="secondary">×1</button>
-        <button type="button" id="btn-mute" class="secondary" aria-pressed="true">音效</button>
       </div>
       <div class="controls sub">
         <button type="button" id="btn-upgrade" class="secondary" disabled>升級</button>
         <button type="button" id="btn-sell" class="secondary" disabled>賣掉</button>
         <button type="button" id="btn-target" class="secondary">優先：最前</button>
         <button type="button" id="btn-auto" class="secondary" aria-pressed="false">自動波</button>
+        <button type="button" id="btn-mute" class="secondary" aria-pressed="true">音效</button>
+        <button type="button" id="btn-ach" class="secondary">成就</button>
       </div>
 
+      <p id="map-stars" class="inspect" aria-live="polite"></p>
       <p id="inspect" class="inspect" hidden></p>
-      <p id="status" class="status" role="status">選模式／難度後開局</p>
+      <p id="status" class="status" role="status">選地圖後開局</p>
+      <p id="ach-toast" class="ach-toast" hidden role="status"></p>
 
       <div class="stage">
         <canvas id="game" width="360" height="520" aria-label="塔防地圖"></canvas>
         <div id="fx" class="fx" aria-hidden="true"></div>
+        <div id="pause-overlay" class="overlay" hidden><p>已暫停</p></div>
+      </div>
+
+      <div id="tutorial" class="panel tutorial" hidden>
+        <p id="tut-text">歡迎！先選一座塔，再點地圖空地建造。</p>
+        <div class="controls">
+          <button type="button" id="tut-next">下一步</button>
+          <button type="button" id="tut-skip" class="secondary">跳過</button>
+        </div>
       </div>
 
       <div id="sell-panel" class="panel" hidden>
@@ -97,12 +93,18 @@
         </div>
       </div>
 
+      <div id="ach-panel" class="panel" hidden>
+        <p><strong>成就</strong></p>
+        <ul id="ach-list" class="ach-list"></ul>
+        <button type="button" id="ach-close" class="secondary">關閉</button>
+      </div>
+
       <details class="rules">
         <summary>怎麼玩</summary>
         <ul>
-          <li>選塔種 → 點空地「＋」建造；點塔可升級（最高 5 級）或賣掉。</li>
-          <li>箭塔點殺、炮塔範圍、冰塔減速；可切換優先目標與遊戲加速。</li>
-          <li>戰役 15 波通關；無盡模式可持續挑戰。連殺越高得分加成越多。</li>
+          <li>三張地圖：通關前一關解鎖下一關；戰役依剩餘生命給 ★1–3。</li>
+          <li>選塔 → 點「＋」建造；升級最高 5 級。可暫停、加速、自動波。</li>
+          <li>無盡模式可持續挑戰；成就進度存在本機。</li>
         </ul>
       </details>
     </main>
