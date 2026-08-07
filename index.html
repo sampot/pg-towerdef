@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="description"
+      content="迷你塔防：單一路徑、箭塔炮塔冰塔、波次防守。純前端 Playgrounds SAM，適配手機與桌面、自製音效。"
+    />
+    <title>迷你塔防</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main>
+      <header class="hero">
+        <p class="eyebrow">街機</p>
+        <h1>迷你塔防</h1>
+        <p class="tagline">一條路 · 三塔種 · 十二波</p>
+      </header>
+
+      <section class="meter" aria-label="對局狀態">
+        <div class="meter-item">
+          <span class="label">金幣</span>
+          <strong id="gold">120</strong>
+        </div>
+        <div class="meter-item">
+          <span class="label">生命</span>
+          <strong id="lives">20</strong>
+        </div>
+        <div class="meter-item">
+          <span class="label">波次</span>
+          <strong id="wave">0/12</strong>
+        </div>
+        <div class="meter-item">
+          <span class="label">得分</span>
+          <strong id="score">0</strong>
+        </div>
+        <div class="meter-actions">
+          <button type="button" id="btn-mute" class="secondary" aria-pressed="true">音效開</button>
+        </div>
+      </section>
+
+      <div class="tower-pick" role="group" aria-label="選擇防禦塔">
+        <button type="button" class="tower-btn is-active" data-kind="arrow" id="pick-arrow">
+          箭塔<br /><span>50g</span>
+        </button>
+        <button type="button" class="tower-btn" data-kind="cannon" id="pick-cannon">
+          炮塔<br /><span>90g</span>
+        </button>
+        <button type="button" class="tower-btn" data-kind="frost" id="pick-frost">
+          冰塔<br /><span>70g</span>
+        </button>
+      </div>
+
+      <div class="controls">
+        <button type="button" id="btn-start">開局</button>
+        <button type="button" id="btn-wave" class="secondary" disabled>下一波</button>
+        <button type="button" id="btn-upgrade" class="secondary" disabled>升級</button>
+        <button type="button" id="btn-sell" class="secondary" disabled>賣掉</button>
+      </div>
+
+      <p id="status" class="status" role="status">點「開局」開始防守</p>
+
+      <div class="stage">
+        <canvas id="game" width="360" height="480" aria-label="塔防地圖"></canvas>
+      </div>
+
+      <p class="hint">選塔種 → 點空地建造 → 「下一波」。點已建塔可升級或賣掉。</p>
+
+      <details class="rules">
+        <summary>怎麼玩</summary>
+        <ul>
+          <li><strong>箭塔</strong>：射速快；<strong>炮塔</strong>：範圍傷害；<strong>冰塔</strong>：減速。</li>
+          <li>敵人沿路徑走到出口會扣生命；撐過 12 波即勝。</li>
+          <li>致敬塔防類型，非商業作品複製品。</li>
+        </ul>
+      </details>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

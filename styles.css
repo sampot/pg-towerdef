@@ -1,0 +1,259 @@
+:root {
+  color-scheme: light dark;
+  --bg: #eef3f0;
+  --panel: #ffffff;
+  --text: #142018;
+  --muted: #5a6b60;
+  --line: #cfd9d2;
+  --accent: #2a6f4a;
+  --on-accent: #f3fff6;
+  --danger: #c0392b;
+  --gold: #c47a00;
+  --tap: 48px;
+  --radius: 0.85rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c1210;
+    --panel: #141c18;
+    --text: #e6efe8;
+    --muted: #93a498;
+    --line: #2a3530;
+    --accent: #4ecf7a;
+    --on-accent: #0a140c;
+    --danger: #f87171;
+    --gold: #fbbf24;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family:
+    "Avenir Next",
+    "Segoe UI",
+    "PingFang TC",
+    "Noto Sans TC",
+    sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(680px 360px at 12% -8%, color-mix(in oklab, var(--accent) 16%, transparent), transparent 55%),
+    radial-gradient(520px 280px at 100% 0%, color-mix(in oklab, #e85d04 12%, transparent), transparent 50%),
+    var(--bg);
+}
+
+main {
+  width: min(100%, 26rem);
+  margin: 0 auto;
+  padding: 0.8rem 0.7rem max(1rem, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hero {
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+h1 {
+  margin: 0.1rem 0 0;
+  font-size: clamp(1.65rem, 6vw, 2rem);
+  letter-spacing: 0.1em;
+}
+
+.tagline {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.meter {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem;
+  padding: 0.55rem;
+  background: color-mix(in oklab, var(--panel) 92%, transparent);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.meter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: 0.55rem;
+  background: color-mix(in oklab, var(--text) 4%, transparent);
+}
+
+.meter-item .label {
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+.meter-item strong {
+  font-variant-numeric: tabular-nums;
+}
+
+#gold {
+  color: var(--gold);
+}
+
+.meter-actions {
+  grid-column: 1 / -1;
+}
+
+.tower-pick,
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+button {
+  appearance: none;
+  border: 0;
+  min-height: var(--tap);
+  padding: 0.55rem 0.85rem;
+  border-radius: 0.75rem;
+  font: inherit;
+  font-weight: 700;
+  color: var(--on-accent);
+  background: linear-gradient(135deg, #3d9a62, var(--accent));
+  cursor: pointer;
+  touch-action: manipulation;
+  flex: 1 1 auto;
+}
+
+button.secondary {
+  color: var(--text);
+  background: color-mix(in oklab, var(--text) 6%, transparent);
+  border: 1px solid var(--line);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tower-btn {
+  color: var(--text);
+  background: color-mix(in oklab, var(--panel) 88%, transparent);
+  border: 2px solid var(--line);
+  line-height: 1.2;
+  font-size: 0.88rem;
+}
+
+.tower-btn span {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+.tower-btn.is-active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 35%, transparent);
+}
+
+.tower-btn[data-kind="arrow"].is-active {
+  background: color-mix(in oklab, #3d8bfd 18%, var(--panel));
+}
+.tower-btn[data-kind="cannon"].is-active {
+  background: color-mix(in oklab, #e85d04 18%, var(--panel));
+}
+.tower-btn[data-kind="frost"].is-active {
+  background: color-mix(in oklab, #4cc9f0 18%, var(--panel));
+}
+
+.status {
+  margin: 0;
+  min-height: 1.35em;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.status[data-tone="ok"] {
+  color: var(--accent);
+}
+.status[data-tone="bad"] {
+  color: var(--danger);
+}
+.status[data-tone="warn"] {
+  color: var(--gold);
+}
+
+.stage {
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
+  background: #1e3a2f;
+}
+
+#game {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.rules {
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--line);
+  background: color-mix(in oklab, var(--panel) 90%, transparent);
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.rules summary {
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.rules ul {
+  margin: 0.35rem 0 0.2rem;
+  padding-left: 1.1rem;
+}
+
+@media (min-width: 480px) {
+  .meter {
+    grid-template-columns: repeat(4, 1fr) auto;
+  }
+  .meter-actions {
+    grid-column: auto;
+    display: flex;
+    align-items: center;
+  }
+  .meter-actions button {
+    flex: none;
+    min-width: 5.2rem;
+  }
+}
