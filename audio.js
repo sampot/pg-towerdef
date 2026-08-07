@@ -112,8 +112,9 @@ export class TowerAudio {
   }
 
   cannon() {
-    this.noise(0.1, 0.2, 0, 600, "lowpass");
+    this.noise(0.1, 0.22, 0, 600, "lowpass");
     this.tone(90, 0.12, "sine", 0.14, 0, -40);
+    this.tone(55, 0.16, "triangle", 0.1, 0.02, -20);
   }
 
   frost() {
@@ -123,7 +124,12 @@ export class TowerAudio {
   }
 
   hit() {
-    this.tone(240, 0.04, "square", 0.04);
+    this.tone(240, 0.04, "square", 0.045);
+  }
+
+  boom() {
+    this.noise(0.14, 0.24, 0, 450, "lowpass");
+    this.tone(70, 0.18, "sine", 0.16, 0, -30);
   }
 
   kill() {
