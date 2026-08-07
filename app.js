@@ -403,13 +403,23 @@ btnWave.addEventListener("click", async () => {
   syncHud();
 });
 
+function togglePause() {
+  if (game.status !== "playing") return;
+  game.paused = !game.paused;
+  setStatus(game.paused ? "已暫停 — 點畫面或按繼續" : "繼續作戰", game.paused ? "warn" : "");
+  syncHud();
+}
+
 btnPause.addEventListener("click", async () => {
   await audio.unlock();
   audio.click();
-  if (game.status !== "playing") return;
-  game.paused = !game.paused;
-  setStatus(game.paused ? "已暫停" : "繼續作戰", game.paused ? "warn" : "");
-  syncHud();
+  togglePause();
+});
+
+pauseOverlay.addEventListener("click", async () => {
+  await audio.unlock();
+  audio.click();
+  if (game.status === "playing" && game.paused) togglePause();
 });
 
 btnSpeed.addEventListener("click", async () => {

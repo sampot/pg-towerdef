@@ -74,7 +74,9 @@
       <div class="stage">
         <canvas id="game" width="360" height="520" aria-label="塔防地圖"></canvas>
         <div id="fx" class="fx" aria-hidden="true"></div>
-        <div id="pause-overlay" class="overlay" hidden><p>已暫停</p></div>
+        <div id="pause-overlay" class="overlay" hidden role="button" tabindex="0" aria-label="已暫停，點擊繼續">
+          <p>已暫停<span class="overlay-hint">點此繼續</span></p>
+        </div>
       </div>
 
       <div id="tutorial" class="panel tutorial" hidden>

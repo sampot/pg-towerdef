@@ -205,6 +205,24 @@ button:disabled {
   font-weight: 800;
   font-size: 1.25rem;
   letter-spacing: 0.2em;
+  cursor: pointer;
+  z-index: 2;
+}
+/* author `display` otherwise overrides the HTML hidden attribute */
+.overlay[hidden] {
+  display: none !important;
+}
+.overlay p {
+  margin: 0;
+  text-align: center;
+}
+.overlay-hint {
+  display: block;
+  margin-top: 0.45rem;
+  font-size: 0.72em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  opacity: 0.85;
 }
 .ach-toast {
   margin: 0;
