@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "rev": "be32a17",
+  "files": [
+    "app.js",
+    "audio.js",
+    "functions.js",
+    "game.js",
+    "index.html",
+    "maps.js",
+    "meta.js",
+    "sprites.js",
+    "styles.css"
+  ]
+}
