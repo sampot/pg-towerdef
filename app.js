@@ -5,6 +5,7 @@ import {
   ACHIEVEMENTS,
   loadMeta,
   saveMeta,
+  mergeMetaFromKv,
   starKey,
   unlockAch,
 } from "./meta.js";
@@ -19,6 +20,12 @@ import {
 const audio = new TowerAudio();
 const game = new TowerDefGame();
 let meta = loadMeta();
+// KV 為權威；本地快取過舊時以遠端為準
+void mergeMetaFromKv(meta).then((m) => {
+  meta = m;
+  renderMapChips();
+  syncHud();
+});
 
 const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById("game"));
 const ctx = canvas.getContext("2d");

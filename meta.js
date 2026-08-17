@@ -63,6 +63,40 @@ export function saveMeta(meta) {
   } catch {
     /* */
   }
+  // KV 為權威；LS 僅快取
+  void fetch(`/api/kv/${KEY}`, { method: "PUT", body: JSON.stringify(meta) }).catch(() => {});
+}
+
+/**
+ * KV 為權威；本地快取過舊時以遠端為準
+ * @param {Meta} meta
+ * @returns {Promise<Meta>}
+ */
+export async function mergeMetaFromKv(meta) {
+  try {
+    const res = await fetch(`/api/kv/${KEY}`);
+    if (!res.ok) return meta;
+    const raw = JSON.parse((await res.text()) || "null");
+    if (!raw) return meta;
+    const merged = { ...meta };
+    merged.best = Math.max(meta.best, Number(raw.best) || 0);
+    merged.totalKills = Math.max(meta.totalKills, Number(raw.totalKills) || 0);
+    if (raw.stars && typeof raw.stars === "object") {
+      merged.stars = { ...(merged.stars || {}) };
+      for (const [k, v] of Object.entries(raw.stars)) {
+        const n = Number(v) || 0;
+        merged.stars[k] = Math.max(merged.stars[k] || 0, n);
+      }
+    }
+    if (Array.isArray(raw.unlocked)) {
+      merged.unlocked = [...new Set([...(meta.unlocked || []), ...raw.unlocked])];
+    }
+    merged.seenTutorial = meta.seenTutorial || !!raw.seenTutorial;
+    return merged;
+  } catch {
+    /* 無 KV 環境照玩 */
+    return meta;
+  }
 }
 
 /**
